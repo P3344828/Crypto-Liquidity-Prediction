@@ -1,0 +1,23 @@
+============================================================
+MODEL EVALUATION REPORT
+Cryptocurrency Liquidity Prediction
+============================================================
+
+PERFORMANCE METRICS:
+----------------------------------------
+RMSE                : 0.107721
+MAE                 : 0.018410
+R² Score            : 0.913156
+MAPE                : 172667.036717
+Max Error           : 1.746320
+Min Error           : 0.000000
+Std Error           : 0.107721
+
+----------------------------------------
+
+INTERPRETATION:
+- RMSE of 0.107721 indicates average prediction error magnitude
+- R² of 0.9132 means the model explains 91.3% of variance
+- MAPE of 172667.04% shows average percentage error
+
+============================================================
