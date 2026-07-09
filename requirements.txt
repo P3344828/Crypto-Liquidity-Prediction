@@ -19,7 +19,7 @@ plotly>=5.11.0
 streamlit>=1.18.0
 
 # Jupyter Support
-jupyter>=1.0.0
+# jupyter>=1.0.0
 ipykernel>=6.0.0
 
 # Utilities
