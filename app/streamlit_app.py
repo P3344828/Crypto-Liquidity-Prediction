@@ -75,15 +75,22 @@ def load_data():
 
 @st.cache_resource
 def load_model():
-    """Load the trained model and scaler."""
+    """Load the trained model, scaler, and thresholds."""
     try:
         model = joblib.load("models/best_model.joblib")
         scaler = joblib.load("models/scaler.joblib")
         feature_columns = joblib.load("models/feature_columns.joblib")
-        return model, scaler, feature_columns
+        
+        # Load liquidity thresholds if they exist, otherwise fallback to defaults
+        try:
+            thresholds = joblib.load("models/liquidity_thresholds.joblib")
+        except FileNotFoundError:
+            thresholds = {'q25': 0.05, 'q75': 0.1}
+            
+        return model, scaler, feature_columns, thresholds
     except FileNotFoundError:
         st.error("Model files not found. Please train the model first.")
-        return None, None, None
+        return None, None, None, None
 
 
 def main():
@@ -93,7 +100,7 @@ def main():
     
     # Load data and model
     df = load_data()
-    model, scaler, feature_columns = load_model()
+    model, scaler, feature_columns, thresholds = load_model()
     
     if df is None:
         st.warning("⚠️ Please run the data pipeline first:")
@@ -116,7 +123,7 @@ python src/model_training.py
     if page == "📊 Dashboard":
         show_dashboard(df)
     elif page == "🔮 Predict Liquidity":
-        show_prediction(df, model, scaler, feature_columns)
+        show_prediction(df, model, scaler, feature_columns, thresholds)
     elif page == "📈 Analysis":
         show_analysis(df)
     else:
@@ -201,7 +208,7 @@ def show_dashboard(df):
         st.dataframe(top_coins, width='stretch')
 
 
-def show_prediction(df, model, scaler, feature_columns):
+def show_prediction(df, model, scaler, feature_columns, thresholds):
     """Show the prediction interface."""
     st.header("🔮 Liquidity Prediction")
     
@@ -259,11 +266,15 @@ def show_prediction(df, model, scaler, feature_columns):
         # Predict
         prediction = model.predict(input_scaled)[0]
         
+        # Get threshold values dynamically
+        q25 = thresholds.get('q25', 0.05)
+        q75 = thresholds.get('q75', 0.1)
+        
         # Classify
-        if prediction >= 0.1:
+        if prediction >= q75:
             liquidity_class = "High"
             class_color = "prediction-high"
-        elif prediction >= 0.05:
+        elif prediction >= q25:
             liquidity_class = "Medium"
             class_color = "prediction-medium"
         else:
@@ -288,6 +299,7 @@ def show_prediction(df, model, scaler, feature_columns):
         
         # Interpretation
         st.markdown("### 📝 Interpretation")
+        st.markdown(f"*(Classification Thresholds derived dynamically from training dataset: **Low** < {q25:.4f} ≤ **Medium** < {q75:.4f} ≤ **High**)*")
         if liquidity_class == "High":
             st.success("✅ **High Liquidity**: This cryptocurrency can be easily traded with minimal price impact. Good for active trading.")
         elif liquidity_class == "Medium":

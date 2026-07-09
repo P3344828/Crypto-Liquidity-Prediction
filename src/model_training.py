@@ -38,6 +38,8 @@ class LiquidityPredictor:
         self.scaler = StandardScaler()
         self.feature_columns = None
         self.results = {}
+        self.q25 = 0.05
+        self.q75 = 0.1
         
     def prepare_features(self, df: pd.DataFrame) -> tuple:
         """
@@ -71,6 +73,11 @@ class LiquidityPredictor:
         # Handle any remaining NaN values
         X = X.fillna(0)
         y = y.fillna(y.median())
+        
+        # Save threshold values
+        self.q25 = float(y.quantile(0.25))
+        self.q75 = float(y.quantile(0.75))
+        print(f"Calculated thresholds from data: q25={self.q25:.6f}, q75={self.q75:.6f}")
         
         print(f"Features: {len(self.feature_columns)}")
         print(f"Samples: {len(X)}")
@@ -302,6 +309,11 @@ class LiquidityPredictor:
         features_path = output_path / "feature_columns.joblib"
         joblib.dump(self.feature_columns, features_path)
         print(f"Features saved to: {features_path}")
+        
+        # Save liquidity thresholds (q25 and q75)
+        thresholds_path = output_path / "liquidity_thresholds.joblib"
+        joblib.dump({'q25': self.q25, 'q75': self.q75}, thresholds_path)
+        print(f"Liquidity thresholds saved to: {thresholds_path}")
         
         # Save results
         results_path = output_path / "model_results.csv"

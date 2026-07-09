@@ -80,7 +80,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     numeric_cols = ['price', 'volume_24h', 'market_cap']
     for col in numeric_cols:
         if col in df_clean.columns:
-            df_clean[col] = df_clean[col].fillna(method='ffill').fillna(method='bfill')
+            df_clean[col] = df_clean[col].ffill().bfill()
     
     # Remove rows where critical columns are still missing
     critical_cols = ['coin', 'symbol', 'price', 'volume_24h', 'market_cap']
